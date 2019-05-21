@@ -23,25 +23,26 @@ class Vocab:
     Handles the conversion of raw text to integers to be fed to a model.
 
     min_freq: Minimum frequency required for a word to be registered in the vocab.
+    tokenizer: Function that converts a chunk of text into tokens.
+        All preprocessing (e.g. lowercasing, limiting the length of the sequence)
+        should be done in the tokenizer. This makes reasoning about the preprocessing
+        much easier.
+    keep_freq: If True, will keep the frequencies of the words (used when building vocab)
+        as the `freq` attribute.
     """
     def __init__(self, min_freq: int=1,
                  max_size: Optional[int]=None,
-                 tokenizer: Callable=lambda x: x.split(),
+                 tokenizer: Callable[[str], List[str]]=lambda x: x.split(),
                  keep_freq: bool=False,
                  padding_index=0,
                  unk_index=1,
-                 index_tokens: bool=True,
                  ):
-        """
-        Sometimes you want to index tokens later on in the pipeline to save memory.
-        """
         self.min_freq = min_freq
         self.max_size = max_size
         self.tokenizer = tokenizer
         self.keep_freq = keep_freq
         self.padding_index = padding_index
         self.unk_index = unk_index
-        self.index_tokens = index_tokens
         self.stoi = DefaultDict(unk_index)
         self.itos = {}
 
@@ -49,10 +50,7 @@ class Vocab:
         return [self.tokenizer(text) for text in texts]
 
     def _tokenlist_to_idxs(self, tokenlist: Iterable[str]):
-        if self.index_tokens:
-            return [self.stoi[x] for x in tokenlist]
-        else:
-            return tokenlist
+        return [self.stoi[x] for x in tokenlist]
 
     def _text_to_idxs(self, text):
         return self._tokenlist_to_idxs(self.tokenizer(text))
