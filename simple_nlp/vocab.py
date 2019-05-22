@@ -82,3 +82,10 @@ class Vocab:
 
     def transform(self, texts: Iterable[str]):
         return [self._text_to_idxs(x) for x in texts]
+
+    def __len__(self):
+        return len(self.stoi)
+
+    @property
+    def size(self):
+        return len(self.stoi)
