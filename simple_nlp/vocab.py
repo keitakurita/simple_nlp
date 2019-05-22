@@ -14,7 +14,7 @@ class DefaultDict(dict):
 
     def __getitem__(self, key):
         if key in self:
-            return key
+            return super().__getitem__(key)
         else:
             return self.default
 
