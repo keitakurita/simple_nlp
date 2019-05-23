@@ -45,3 +45,10 @@ def text_max_size(texts):
     assert X[2] == [1, 1, 1]
     assert X[3][-1] == 1
     assert X[4][-1] == 1
+
+def test_prebuilt(texts):
+    vocab = Vocab(prebuilt_stoi={"this": 2, "is": 3, "a": 4})
+    X = vocab.fit_transform(texts)
+    assert X[0] == [2, 3, 4, 1]
+    assert X[1] == [4, 1, 2, 3]
+    assert X[2] == [1, 1, 1]

@@ -36,6 +36,7 @@ class Vocab:
                  keep_freq: bool=False,
                  padding_index=0,
                  unk_index=1,
+                 prebuilt_stoi: Dict[str, int]=None,
                  ):
         self.min_freq = min_freq
         self.max_size = max_size
@@ -43,8 +44,13 @@ class Vocab:
         self.keep_freq = keep_freq
         self.padding_index = padding_index
         self.unk_index = unk_index
+        self._prebuilt = prebuilt_stoi is not None
         self.stoi = DefaultDict(unk_index)
         self.itos = {}
+        if prebuilt_stoi is not None:
+            for k, v in prebuilt_stoi.items():
+                self.stoi[k] = v
+                self.itos[v] = k
 
     def _textlist_to_tokenlists(self, texts: Iterable[str]):
         return [self.tokenizer(text) for text in texts]
@@ -57,27 +63,28 @@ class Vocab:
 
     def fit_transform(self, texts: Iterable[str]):
         _inner_texts = self._textlist_to_tokenlists(texts)
-        _freqs = Counter()
-        for text in _inner_texts:
-            _freqs.update(text)
+        if not self._prebuilt:
+            _freqs = Counter()
+            for text in _inner_texts:
+                _freqs.update(text)
 
-        if self.keep_freq: self.freq = _freqs
+            if self.keep_freq: self.freq = _freqs
 
-        idx = 0
-        for word, freq in _freqs.most_common(None):
-            # stop construction of vocab when appropriate
-            if self.max_size is not None and idx >= self.max_size: break
-            if freq < self.min_freq: break
+            idx = 0
+            for word, freq in _freqs.most_common(None):
+                # stop construction of vocab when appropriate
+                if self.max_size is not None and idx >= self.max_size: break
+                if freq < self.min_freq: break
 
-            # keep these reserved indices intact
-            if idx == self.padding_index:
+                # keep these reserved indices intact
+                if idx == self.padding_index:
+                    idx += 1
+                if idx == self.unk_index:
+                    idx += 1
+                self.stoi[word] = idx
+                self.itos[idx] = word
+                assert freq >= self.min_freq
                 idx += 1
-            if idx == self.unk_index:
-                idx += 1
-            self.stoi[word] = idx
-            self.itos[idx] = word
-            assert freq >= self.min_freq
-            idx += 1
         return [self._tokenlist_to_idxs(x) for x in _inner_texts]
 
     def transform(self, texts: Iterable[str]):
