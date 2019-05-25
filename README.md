@@ -25,6 +25,6 @@ train_dataset = TextDataset(x_train, y_train)
 valid_dataset = TextDataset(x_val, y_val)
 
 sampler = BucketBatchSampler(train_dataset, 32)
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_sampler=sampler)
-valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_sampler=sampler, collate_fn=pad_collate)
+valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate)
 ```
